@@ -1,115 +1,122 @@
+// TODO head should be connected to neck (invisible edge?)
+// TODO make Stickman() object! function Stickfigure () { this.graph = [[]].., prototypes
+// TODO ability to move body 50px to right
+// TODO add a knee (and rewrite edges)
+// TODO parameter object instead of n[x]? (var opts = {width: 400, ...}; opts.width;)
+//
+// PARAMETER OBJECT?
+// var graph = {x: myx, y: myy, neighbors: [arr], circle: true} ... how change?
+//
+// COMPACTNESS
+// m = [[20,20,[1,2,3]],[20,27,[4,5]],[15,15],[25,15],[15,32],[25,32],[20,17,0,2]]; // 80 chars
+// huffman encoding? copy-pastable?
+// "say it with a stickman" animations with arrays of stickfiguresand delays
+// 
+// IDEA: whole-body scaling and twisting
+// IDEA: bring back defaults
+// IDEA: grid layout, circle layout to denote movability around central nodes
+// IDEA: use standard body proportions to generate diff body types
+//
+// OPERATIONS
+// moving a foot means preserving distance, ie keep circle, ie change direction from connected node
+// and then move along it from the one-neighbor
+// circles good way of illustrating though, at least around torsos
+//
+// NOW?
+// leg = limb(0, 1) lets say this is true, leg evals to the actual limb, we can find out its length
+// then we want to start at connected one (WHY? - we are moving the foot, right?)
+// moveFoot so direction is ssw. Does that make sense?
+// ... "move foot ssw wrt to torso" ... is wrt torso implicit? why? if I have a knee?
+// muddled when it comes to left/up and stuff
+// what about clockwise and counterclockwise? % or so
+// make distinction between noForce move and Force move (later)
+// heres where the limb thing comes into play.
+// leg(ssw) [assuming there is a ]
+// 
+// ALIASES
+// nodes = chest, pelvis, head, {left|right}{hand|foot}
+// ... (neck, {left|right}{knee|elbow})
+//
+// edges leftleg = [pelvis, leftfoot] etc
+// 
+// ...which level of abstraction is this? where do we do this?
+// "naming things" - we want to have a bunch of default aliases,
+// but we also want to be able to add to it
+// should be able to use natural language from the get-go,
+// but add a weird joint if need arises
+//
+// not part of the CORE though, since that is just points, lines and arcs
+// this is one level above that
+//
+// move([leftfoot, pelvis], deg)
+// implicitly rotate leftfoot around pelvis in degree. Check for other connections!
+
+
+
+// A graph is a list of nodes
+// [x, y, [edgeIndices]*, radius**]
+// * index to connected nodes ** implicitly a circus
+// TODO variable
+graph = [[200, 200, [1, 2, 3]],
+         [200, 270, [4, 5]],
+         [140, 170],
+         [260, 170],
+         [150, 320],
+         [250, 320],
+         [200, 175, null, 20]];
+
+function moveEdge(g, a, b, deg) {
+  // start from b,
+  // keep len(a, b),
+  // calc new a with deg,
+  // replace a
+  // should error if problem
+  //g[b]
+  // ...kind of assumes a and b are neighbors etc. find out if case!?
+}
+
+// NOT USED: Proof of concept, moves whole graph 
+function moveGraph(g, dx, dy) {
+  return _.map(g, function(n) {
+    n[0] = n[0] + dx;
+    n[1] = n[1] + dy;
+  });
+}
+
+// Main function to draw figure
 function draw () {
-  var canvas = document.getElementById("scene"),
-      ctx = canvas.getContext("2d");
+  var ctx = document.getElementById("scene").getContext("2d");
 
-  function degToRad(deg) {
-    return Math.PI*deg/180;
-  }
-
-  function rotatePoint(pivot, p, deg) {
-    var x = p[0]-pivot[0],
-        y = p[1]-pivot[1],
-        r = Math.sqrt(x*x + y*y),
-        newX = r*Math.cos(degToRad(deg)) + pivot[0],
-        newY = r*Math.sin(degToRad(deg)) + pivot[1];
-
-    return [newX, newY];
-  }
-
-  DEFAULT_OPTIONS = {
-    position: [canvas.width/2, canvas.height/2], // defaults to center
-    leftarm: 65,
-    rightarm: 120,
-    leftleg: 65,
-    rightleg: 120,
-    head: 270
-  }
-
-  function Stickfigure (options) {
-
-    this.options = extend(DEFAULT_OPTIONS, options);
-
-    this.TORSO_BOTTOM = this.options.position;
-    this.TORSO_TOP = [this.options.position[0], this.options.position[1] - 50];
-    this. LEFT_LEG = [this.TORSO_BOTTOM[0], this.TORSO_BOTTOM[1] + 50];
-    this.RIGHT_LEG = [this.TORSO_BOTTOM[0], this.TORSO_BOTTOM[1] + 50];
-    this.HEAD_RADIUS = 20;
-    this.LEFT_ARM = [this.TORSO_TOP[0]+20, this.TORSO_TOP[1] + 40];
-    this.RIGHT_ARM = [this.TORSO_TOP[0]-20, this.TORSO_TOP[1] + 40];
-  }
-
-  Stickfigure.prototype.drawLine = function(p1, p2) {
+ function drawNode(n) {
+    ctx.fillStyle = (n[3]) ? "black" : "rgb(10,200,10)";
     ctx.beginPath();
-    ctx.moveTo(p1[0], p1[1]);
-    ctx.lineTo(p2[0], p2[1]);
+    ctx.arc(n[0], n[1], 4, 0, 2*Math.PI);
+    ctx.fill();
+  }
+
+  function drawEdge(a, b) {
+    ctx.beginPath();
+    ctx.moveTo(a[0], a[1]);
+    ctx.lineTo(b[0], b[1]);
     ctx.stroke();
   }
 
-  Stickfigure.prototype.drawCircle = function(point, radius) {
-    ctx.arc(point[0], point[1], radius, 0, 2*Math.PI*radius, false);
-  }
-
-  Stickfigure.prototype.drawHead = function() {
+  function drawCircle (n) {
     ctx.beginPath();
-    this.drawCircle(rotatePoint(this.TORSO_TOP, [this.TORSO_TOP[0], this.TORSO_TOP[1] - this.HEAD_RADIUS], this.options.head), this.HEAD_RADIUS);
+    ctx.arc(n[0], n[1], n[3], 0, 2*Math.PI*n[3], false);
     ctx.stroke();
   }
 
-  Stickfigure.prototype.drawTorso = function() {
-    this.drawLine(this.TORSO_BOTTOM, this.TORSO_TOP);
-  }
-
-  // TORSO_BOTTOM, LEFT_LEG (leftleg) - map?
-  Stickfigure.prototype.drawLeftLeg = function() {
-    this.drawLine(this.TORSO_BOTTOM, rotatePoint(this.TORSO_BOTTOM, this.LEFT_LEG, this.options.leftleg));
-  }
-
-  Stickfigure.prototype.drawRightLeg = function() {
-    this.drawLine(this.TORSO_BOTTOM, rotatePoint(this.TORSO_BOTTOM, this.RIGHT_LEG, this.options.rightleg));
-  }
-
-  Stickfigure.prototype.drawLeftArm = function() {
-    this.drawLine(this.TORSO_TOP, rotatePoint(this.TORSO_TOP, this.LEFT_ARM, this.options.leftarm));
-  }
-
-  Stickfigure.prototype.drawRightArm = function() {
-    this.drawLine(this.TORSO_TOP, rotatePoint(this.TORSO_TOP, this.RIGHT_ARM, this.options.rightarm));
-  }
-
-  Stickfigure.prototype.draw = function() {
-
-    this.drawHead();
-    this.drawTorso();
-    this.drawLeftLeg();
-    this.drawRightLeg();
-    this.drawLeftArm();
-    this.drawRightArm();
-  }
-
-  // DSL BEGINS
-  var s1 = new Stickfigure({leftleg: -18, rightleg: 100, leftarm: 8, rightarm: 35, head: 290});
-  var s2 = new Stickfigure({position: [100, 200]});
-
-  s1.draw();
-  s2.draw();
+  // Draws nodes, circles and edges starting at node
+  _.each(graph,
+      function(n) {
+        drawNode(n); // n[0] and n[1]
+        _.each(n[2],
+          function(k) { 
+            drawEdge(n, graph[k]);
+          });
+        if (n[3]) {
+          drawCircle(n);
+        }
+      });
 }
-
-
-// use real library
-// awful
-function extend (obj1, obj2) {
-  var o = {};
-  for (var k in obj1) {
-    if (obj1.hasOwnProperty(k)) {
-      o[k] = obj1[k];
-    }
-  }
-  for (k in obj2) {
-    if (obj2.hasOwnProperty(k)) {
-      o[k] = obj2[k];
-    }
-  }
-
-  return o;
-}
-
