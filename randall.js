@@ -1,14 +1,15 @@
 // TODO head should be connected to neck (invisible edge?)
-// TODO make Stickman() object! function Stickfigure () { this.graph = [[]].., prototypes
+// TODO make Stickman() object! function Stickfigure () { this.graph =[[]]..,
 // TODO ability to move body 50px to right
 // TODO add a knee (and rewrite edges)
-// TODO parameter object instead of n[x]? (var opts = {width: 400, ...}; opts.width;)
+// TODO parameter object instead of n[x]? (var opts = {width: 400, ...};
 //
 // PARAMETER OBJECT?
 // var graph = {x: myx, y: myy, neighbors: [arr], circle: true} ... how change?
 //
 // COMPACTNESS
-// m = [[20,20,[1,2,3]],[20,27,[4,5]],[15,15],[25,15],[15,32],[25,32],[20,17,0,2]]; // 80 chars
+// m =  [[20,20,[1,2,3]],[20,27,[4,5]],[15,15],[25,15],
+// 15,32],[25,32],[20,17,0,2]]; // 80 chars
 // huffman encoding? copy-pastable?
 // "say it with a stickman" animations with arrays of stickfiguresand delays
 // 
@@ -16,17 +17,20 @@
 // IDEA: bring back defaults
 // IDEA: grid layout, circle layout to denote movability around central nodes
 // IDEA: use standard body proportions to generate diff body types
+// IDEA: https://en.wikipedia.org/wiki/Processing.js language
 //
 // OPERATIONS
-// moving a foot means preserving distance, ie keep circle, ie change direction from connected node
+// moving a foot means preserving distance, ie keep circle, ie change
+// direction from connected node
 // and then move along it from the one-neighbor
 // circles good way of illustrating though, at least around torsos
 //
 // NOW?
-// leg = limb(0, 1) lets say this is true, leg evals to the actual limb, we can find out its length
-// then we want to start at connected one (WHY? - we are moving the foot, right?)
+// leg = limb(0, 1) lets say this is true, leg evals to the actual limb, we can 
+// find out its length then we want to start at connected one (WHY? - we are 
+// moving the foot, right?)
 // moveFoot so direction is ssw. Does that make sense?
-// ... "move foot ssw wrt to torso" ... is wrt torso implicit? why? if I have a knee?
+// ... "move foot ssw wrt to torso" ... is wrt torso implicit? why? if knee?
 // muddled when it comes to left/up and stuff
 // what about clockwise and counterclockwise? % or so
 // make distinction between noForce move and Force move (later)
@@ -49,14 +53,12 @@
 // this is one level above that
 //
 // move([leftfoot, pelvis], deg)
-// implicitly rotate leftfoot around pelvis in degree. Check for other connections!
-
+// implicitly rotate leftfoot around pelvis in degree. Check other connections!  
 
 
 // A graph is a list of nodes
 // [x, y, [edgeIndices]*, radius**]
 // * index to connected nodes ** implicitly a circus
-// TODO variable
 graph = [[200, 200, [1, 2, 3]],
          [200, 270, [4, 5]],
          [140, 170],
@@ -65,7 +67,9 @@ graph = [[200, 200, [1, 2, 3]],
          [250, 320],
          [200, 175, null, 20]];
 
+//  moves a wrt to b
 function moveEdge(g, a, b, deg) {
+  
   // start from b,
   // keep len(a, b),
   // calc new a with deg,
@@ -84,14 +88,25 @@ function moveGraph(g, dx, dy) {
 }
 
 // Main function to draw figure
-function draw () {
+// Make into a painter figure?
+// Graph is implicit, not a good idea
+function draw (graph) {
   var ctx = document.getElementById("scene").getContext("2d");
 
- function drawNode(n) {
+  function drawNode(n) {
     ctx.fillStyle = (n[3]) ? "black" : "rgb(10,200,10)";
     ctx.beginPath();
     ctx.arc(n[0], n[1], 4, 0, 2*Math.PI);
     ctx.fill();
+
+    // diff colour
+    // only for right nodes
+    // length correct
+    // so really several nodes?
+    //
+    // traverse list of graphs, get
+    // if neighbors > 1, assume can't move
+    drawCircle([n[0], n[1], null, 20]);
   }
 
   function drawEdge(a, b) {
@@ -101,6 +116,7 @@ function draw () {
     ctx.stroke();
   }
 
+  // expect [x, y, null, radius]
   function drawCircle (n) {
     ctx.beginPath();
     ctx.arc(n[0], n[1], n[3], 0, 2*Math.PI*n[3], false);
@@ -108,15 +124,25 @@ function draw () {
   }
 
   // Draws nodes, circles and edges starting at node
-  _.each(graph,
+  _.each(this.graph,
       function(n) {
         drawNode(n); // n[0] and n[1]
         _.each(n[2],
           function(k) { 
-            drawEdge(n, graph[k]);
+            drawEdge(n, this.graph[k]);
           });
         if (n[3]) {
           drawCircle(n);
         }
       });
 }
+
+draw(graph);
+
+//function Stickfigure (options) {
+//  this.graph = graph;
+//
+//  draw(graph);
+//}
+//foo = new Stickfigure();
+//foo.draw();
